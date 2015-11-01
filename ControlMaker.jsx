@@ -11,7 +11,7 @@ function ControlMaker(thisObj)
 {
     var ctrlMakerData = {};
     ctrlMakerData.scriptName = "ControlMaker";
-    ctrlMakerData.version = "1.2";
+    ctrlMakerData.version = "1.0";
     
      ctrlMakerData.strSettingsTip = "Controller folder location";
      ctrlMakerData.strHelpTip = "About this script";
