@@ -384,7 +384,7 @@ function ControlMaker(thisObj)
 
             palObj.AIBtns[i].AIFile = ctrlMakerData.files[i];		// Store file name with button (sneaky that JavaScript is)
             palObj.AIBtns[i].helpTip = File(ctrlMakerData.files[i]).name.replace(/.ai?$/, "").replace(/%20/g, " ");
-            palObj.AIBtns[i].onClick = importControl(this.AIFile); //  function(){importControl(this.AIFile);}
+            palObj.AIBtns[i].onClick = function(){importControl(this.AIFile);}
             
             leftEdge += (btnSize + 2);
         }
@@ -429,20 +429,24 @@ function ControlMaker(thisObj)
         
         strokeClrB.onDraw = strokeBDraw;
         function strokeBDraw(h){
-                this.graphics.drawOSControl();  
-                this.graphics.rectPath(2.5,2.5,9,9);  
-                this.graphics.strokePath(strokePen);
-                this.graphics.newPath();
-                this.graphics.rectPath(0,0,14,14);
-                this.graphics.strokePath(strokeOutlinePen);
+            with(this) {
+                graphics.drawOSControl();  
+                graphics.rectPath(2.5,2.5,9,9);  
+                graphics.strokePath(strokePen);
+                graphics.newPath();
+                graphics.rectPath(0,0,14,14);
+                graphics.strokePath(strokeOutlinePen);
+            }
         }
 
         fillClrB.onDraw = fillBDraw;
         function fillBDraw(h){
+            with(this) {
                 this.graphics.drawOSControl();  
                 this.graphics.rectPath(0,0,14,14);  
                 this.graphics.fillPath(fillBrush);
                 this.graphics.strokePath(strokePen);
+            }
         }
 
         fillClrB.onClick = function () {// outlines fill color in white to mean it's "selected" after one click, on second click sets color of fill
@@ -497,10 +501,12 @@ function ControlMaker(thisObj)
             if (fillClrB.oneClick) {
                 ctrlMakerData.fillClr[3] = 0;
                 fillClrB.fillBrush = fillClrB.graphics.newBrush(palObj.graphics.BrushType.SOLID_COLOR, ctrlMakerData.fillClr);
+                app.settings.saveSetting(ctrlMakerData.scriptName,"fillClr",ctrlMakerData.fillClr.toString());
                 fillClrB.notify("onDraw");
             }
             if (strokeClrB.oneClick) {
                 ctrlMakerData.strokeClr[3] = 0;
+                app.settings.saveSetting(ctrlMakerData.scriptName,"strokeClr",ctrlMakerData.strokeClr.toString());
                 strokeClrB.strokePen = strokeClrB.graphics.newPen(palObj.graphics.BrushType.SOLID_COLOR, ctrlMakerData.strokeClr,3.5);
                 strokeClrB.notify("onDraw");
             }
