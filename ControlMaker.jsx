@@ -516,6 +516,8 @@ function ControlMaker(thisObj)
             var fillClr = ctrlMakerData.fillClr;
             ctrlMakerData.fillClr = ctrlMakerData.strokeClr;
             ctrlMakerData.strokeClr = fillClr;
+            app.settings.saveSetting(ctrlMakerData.scriptName,"strokeClr",ctrlMakerData.strokeClr.toString());
+            app.settings.saveSetting(ctrlMakerData.scriptName,"fillClr",ctrlMakerData.fillClr.toString());
             fillClrB.fillBrush = fillClrB.graphics.newBrush(palObj.graphics.BrushType.SOLID_COLOR, ctrlMakerData.fillClr);
             strokeClrB.strokePen = strokeClrB.graphics.newPen(palObj.graphics.BrushType.SOLID_COLOR, ctrlMakerData.strokeClr,3.5);
             strokeClrB.notify("onDraw");
