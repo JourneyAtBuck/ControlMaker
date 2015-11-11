@@ -27,7 +27,7 @@ function ControlMaker(thisObj)
         "Notes:\n" +
         "This browser creates buttons for all .ai files located in the selected folder, which you can change by clicking the '...' button; subfolders are not scanned. If you place a 15x15 or smaller PNG file in the same folder and with the same base name as the Illustrator file (with a .png extension, e.g., hand.png for the hand.ai file), the PNG file will be used as an icon button instead.\n" +
         "\n" +
-        "Hold CTRL while clicking for extended features: if you have puppet pins selected, create expressions on each pin linking their position to their respective controlls; if you have multiple layers selected, create one control in the center."+
+        "Hold CTRL while clicking for extended features: if you have puppet pins selected, create expressions on each pin linking their position to their respective controls; if you have multiple layers selected, create one control in the center."+
         "\n" +
         "You can use this browser as a dockable panel by placing it in a ScriptUI Panels subfolder of the controls folder, and then choosing the ControlMaker.jsx script from the Window menu.";
         
