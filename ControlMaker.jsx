@@ -7,7 +7,7 @@
             Copyright (c) 2015 Moses Journey
  */
 
-function ControlMaker(thisObj)
+function MJ_ControlMaker(thisObj)
 {
     var ctrlMakerData = {};
     ctrlMakerData.scriptName = "ControlMaker";
@@ -185,8 +185,8 @@ function ControlMaker(thisObj)
         var layerName = importedImg.name.substr(0,importedImg.name.lastIndexOf("."));
         
         app.executeCommand(3973); // converts selected illustrator layer to shape layer
-        var shapeLayerName = layerName+" Outlines";
-        comp.layer(shapeLayerName).guideLayer = true;
+        var shapeLayer = comp.selectedLayers[0];
+        shapeLayer.guideLayer = true;
         
         if (newCtrlName) layerName = newCtrlName;
 
@@ -201,7 +201,7 @@ function ControlMaker(thisObj)
         }//end controller counter
        
 
-        var ctrlName = comp.layer(shapeLayerName).name = layerName+" CTRL "+(ctrlCnt+1).toString();
+        var ctrlName = shapeLayer.name = layerName+" CTRL "+(ctrlCnt+1).toString();
         var ctrlLayer = comp.layer(ctrlName);                
         
         var propList = listProperties(ctrlLayer); // gets all properties for control
@@ -226,9 +226,9 @@ function ControlMaker(thisObj)
         propList = listProperties(ctrlLayer);
         for (p = 0; p<propList.length; p++) { // sets color of  fills/strokes to chosen swatch color, otherwise if fill/strokes swatch has an alpha of 0, disables property
             try {
-                    if (!ctrlMakerData.strokeClr[3] && propList[p].name == "Color" && propList[p].propertyGroup(1).name.match("Stroke")) {
+                    if (!ctrlMakerData.strokeClr[3] && propList[p].matchName == "ADBE Vector Stroke Color") {
                         propList[p].propertyGroup(1).enabled = false;
-                    } else if (propList[p].name == "Color" && propList[p].propertyGroup(1).name.match("Stroke")) {
+                    } else if (propList[p].matchName == "ADBE Vector Stroke Color") {
                         propList[p].setValue(ctrlMakerData.strokeClr);
                         propList[p].enabled = true;
                     }
@@ -236,9 +236,9 @@ function ControlMaker(thisObj)
                     continue;
                }
                 try {
-                    if (!ctrlMakerData.fillClr[3] && propList[p].name == "Color" && propList[p].propertyGroup(1).name.match("Fill")) {
+                    if (!ctrlMakerData.fillClr[3] && propList[p].matchName == "ADBE Vector Fill Color") {
                         propList[p].propertyGroup(1).enabled = false;
-                    } else if (propList[p].name == "Color" && propList[p].propertyGroup(1).name.match("Fill")) {
+                    } else if (propList[p].matchName == "ADBE Vector Fill Color") {
                         propList[p].setValue(ctrlMakerData.fillClr);
                         propList[p].enabled = true;
                     }
@@ -288,7 +288,7 @@ function ControlMaker(thisObj)
                         var pinnedLyr = pinsArray[p].propertyGroup(pinsArray[p].propertyDepth);
                         var isShape;
                         var positionOffset;
-                        var pinPos = pinsArray[p].property("Position");
+                        var pinPos = pinsArray[p].property("ADBE FreePin3 PosPin Position");
                         var ctrl = importAIasShape (newFile,comp,pinsArray[p].name);              
                         
                         ctrl.moveBefore(pinnedLyr);
@@ -297,12 +297,12 @@ function ControlMaker(thisObj)
                             positionOffset = pinPos.value;
                         }else{
                             if(pinnedLyr.threeDLayer) ctrl.threeDLayer = true;
-                            ctrl.property("Position").expression = "L = thisComp.layer('"+pinnedLyr.name+"')\rL.toWorld([0,0,0])"; //cheat to get toWorld position of selected layer
-                            positionOffset = pinPos.value+ctrl.property("Position").value;
+                            ctrl.property("ADBE Transform Group").property("ADBE Position").expression = "L = thisComp.layer(\""+pinnedLyr.name+"\")\rL.toWorld([0,0,0])"; //cheat to get toWorld position of selected layer
+                            positionOffset = pinPos.value+ctrl.property("ADBE Transform Group").property("ADBE Position").value;
                         }
-                        ctrl.property("Position").setValue(positionOffset);
-                        ctrl.property("Position").expression = "";
-                        if(ctrlPressed) {pinPos.expression = "L = thisComp.layer(thisProperty.propertyGroup(1).name+' CTRL 1');\rL.toComp(L.anchorPoint)";} // links pin position go control layer, if ctrl is pressed on keyboard
+                        ctrl.property("ADBE Transform Group").property("ADBE Position").setValue(positionOffset);
+                        ctrl.property("ADBE Transform Group").property("ADBE Position").expression = "";
+                        if(ctrlPressed) {pinPos.expression = "L = thisComp.layer(thisProperty.propertyGroup(1).name+\" CTRL 1\");\rL.toWorld(L(\"ADBE Transform Group\")(\"ADBE Anchor Point\"))";} // links pin position to control layer, if ctrl is pressed on keyboard
                     }
                     app.endUndoGroup();
                 } else if (!ctrlPressed && comp.selectedLayers.length && !pinsArray.length) { // if any layers are selected, import one controller per layer, move to that layer
@@ -311,10 +311,17 @@ function ControlMaker(thisObj)
                     for (var i in selLyrs){
                         var ctrl = importAIasShape (newFile,comp,selLyrs[i].name); //use name of selected layers as controller name
                         ctrl.moveBefore(selLyrs[i]);
-                        if(selLyrs[i].threeDLayer) ctrl.threeDLayer = true;
-                        ctrl.property("Position").expression = "L = thisComp.layer('"+selLyrs[i].name+"')\rL.toWorld(L.anchorPoint)"; //cheat to get toWorld position of selected layer
-                        ctrl.property("Position").setValue(ctrl.property("Position").value);
-                        ctrl.property("Position").expression = "";
+                        var posProp, isNotFtg;
+                        if (ctrl instanceof AVLayer){
+                            posProp = "L('ADBE Transform Group')('ADBE Anchor Point')";
+                        } else {
+                            posProp = "[0,0,0]";// check if layer has an anchor point or not (i.e. if it's a camera or light)
+                            isNotFtg = true;
+                        }
+                        if(selLyrs[i].threeDLayer || isNotFtg) ctrl.threeDLayer = true;
+                        ctrl.property("ADBE Transform Group").property("ADBE Position").expression = "L = thisComp.layer('"+selLyrs[i].name+"')\rL.toWorld("+posProp+")"; //cheat to get toWorld position of selected layer
+                        ctrl.property("ADBE Transform Group").property("ADBE Position").setValue(ctrl.property("ADBE Transform Group").property("ADBE Position").value);
+                        ctrl.property("ADBE Transform Group").property("ADBE Position").expression = "";
                     }
                     app.endUndoGroup();
                     
@@ -325,14 +332,21 @@ function ControlMaker(thisObj)
                     var expTmp = "(";
                     var isThreeD = false;
                     for (var i in selLyrs){
-                        expTmp = expTmp+"thisComp.layer('"+selLyrs[i].name+"').toWorld(thisComp.layer('"+selLyrs[i].name+"').anchorPoint)"; //cheat to find midpoint of selected layers
+                        var posProp, isNotFtg;
+                        if (ctrl instanceof AVLayer){
+                            posProp = "thisComp.layer('"+selLyrs[i].name+"')('ADBE Transform Group')('ADBE Anchor Point')";
+                        } else {
+                            posProp = "[0,0,0]";// check if layer has an anchor point or not (i.e. if it's a camera or light)
+                            isNotFtg = true;
+                        }
+                        expTmp = expTmp+"thisComp.layer('"+selLyrs[i].name+"').toWorld("+posProp+")"; //cheat to find midpoint of selected layers
                         if (i<selLyrs.length-1)expTmp = expTmp+"+";
-                        if (selLyrs[i].threeDLayer === true) isThreeD = true;
+                        if (selLyrs[i].threeDLayer === true || isNotFtg) isThreeD = true;
                     }
                     ctrl.threeDLayer = isThreeD;
-                    ctrl.property("Position").expression = expTmp+")/"+selLyrs.length.toString();
-                    ctrl.property("Position").setValue(ctrl.property("Position").value);
-                    ctrl.property("Position").expression = "";
+                    ctrl.property("ADBE Transform Group").property("ADBE Position").expression = expTmp+")/"+selLyrs.length.toString();
+                    ctrl.property("ADBE Transform Group").property("ADBE Position").setValue(ctrl.property("ADBE Transform Group").property("ADBE Position").value);
+                    ctrl.property("ADBE Transform Group").property("ADBE Position").expression = "";
                     app.endUndoGroup();
                 } else { // otherwise just import one
                     app.beginUndoGroup("Import "+newFile.name+" as controller layer");
@@ -384,7 +398,7 @@ function ControlMaker(thisObj)
 
             palObj.AIBtns[i].AIFile = ctrlMakerData.files[i];		// Store file name with button (sneaky that JavaScript is)
             palObj.AIBtns[i].helpTip = File(ctrlMakerData.files[i]).name.replace(/.ai?$/, "").replace(/%20/g, " ");
-            palObj.AIBtns[i].onClick = function(){importControl(this.AIFile);}
+            palObj.AIBtns[i].onClick = function(){importControl(this.AIFile);};
             
             leftEdge += (btnSize + 2);
         }
@@ -660,6 +674,7 @@ function ControlMaker(thisObj)
                 ctrlMakerPal.show();
             } else ctrlMaker_doResizePanel();}
         }
+
 }
-ControlMaker(this);
+MJ_ControlMaker(this);
 
