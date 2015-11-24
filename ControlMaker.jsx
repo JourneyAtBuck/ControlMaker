@@ -11,7 +11,7 @@ function MJ_ControlMaker(thisObj)
 {
     var ctrlMakerData = {};
     ctrlMakerData.scriptName = "ControlMaker";
-    ctrlMakerData.version = "1.0";
+    ctrlMakerData.version = "1.01";
     
      ctrlMakerData.strSettingsTip = "Controller folder location";
      ctrlMakerData.strHelpTip = "About this script";
@@ -27,7 +27,7 @@ function MJ_ControlMaker(thisObj)
         "Notes:\n" +
         "This browser creates buttons for all .ai files located in the selected folder, which you can change by clicking the '...' button; subfolders are not scanned. If you place a 15x15 or smaller PNG file in the same folder and with the same base name as the Illustrator file (with a .png extension, e.g., hand.png for the hand.ai file), the PNG file will be used as an icon button instead.\n" +
         "\n" +
-        "Hold CTRL while clicking for extended features: if you have puppet pins selected, create expressions on each pin linking their position to their respective controls; if you have multiple layers selected, create one control in the center."+
+        "Hold SHIFT while clicking for extended features: if you have puppet pins selected, create expressions on each pin linking their position to their respective controls; if you have multiple layers selected, create one control in the center."+
         "\n" +
         "You can use this browser as a dockable panel by placing it in a ScriptUI Panels subfolder of the controls folder, and then choosing the ControlMaker.jsx script from the Window menu.";
         
@@ -268,7 +268,7 @@ function MJ_ControlMaker(thisObj)
     //importControl()
     //function to check if multiple layers/puppet pins are selected, imports controls for each one, otherwise imports one control to the center of the comp
     function importControl(newFile) {
-            var ctrlPressed = ScriptUI.environment.keyboardState.ctrlKey;
+            var shiftPressed = ScriptUI.environment.keyboardState.shiftKey;
             var comp = app.project.activeItem;
             if (comp !== null && comp instanceof CompItem) {
                 comp.openInViewer();
@@ -302,21 +302,21 @@ function MJ_ControlMaker(thisObj)
                         }
                         ctrl.property("ADBE Transform Group").property("ADBE Position").setValue(positionOffset);
                         ctrl.property("ADBE Transform Group").property("ADBE Position").expression = "";
-                        if(ctrlPressed) {pinPos.expression = "L = thisComp.layer(thisProperty.propertyGroup(1).name+\" CTRL 1\");\rL.toWorld(L(\"ADBE Transform Group\")(\"ADBE Anchor Point\"))";} // links pin position to control layer, if ctrl is pressed on keyboard
+                        if(shiftPressed) {pinPos.expression = "L = thisComp.layer(thisProperty.propertyGroup(1).name+\" CTRL 1\");\rL.toWorld(L(\"ADBE Transform Group\")(\"ADBE Anchor Point\"))";} // links pin position to control layer, if shift is pressed on keyboard
                     }
                     app.endUndoGroup();
-                } else if (!ctrlPressed && comp.selectedLayers.length && !pinsArray.length) { // if any layers are selected, import one controller per layer, move to that layer
+                } else if (!shiftPressed && comp.selectedLayers.length && !pinsArray.length) { // if any layers are selected, import one controller per layer, move to that layer
                     app.beginUndoGroup("Import "+newFile.name+" as controller layers");
                     var selLyrs = comp.selectedLayers;
                     for (var i in selLyrs){
                         var ctrl = importAIasShape (newFile,comp,selLyrs[i].name); //use name of selected layers as controller name
                         ctrl.moveBefore(selLyrs[i]);
                         var posProp, isNotFtg;
-                        if (ctrl instanceof AVLayer){
-                            posProp = "L('ADBE Transform Group')('ADBE Anchor Point')";
-                        } else {
+                        if (selLyrs[i] instanceof CameraLayer || selLyrs[i] instanceof LightLayer ){
                             posProp = "[0,0,0]";// check if layer has an anchor point or not (i.e. if it's a camera or light)
                             isNotFtg = true;
+                        } else {
+                            posProp = "L('ADBE Transform Group')('ADBE Anchor Point')";
                         }
                         if(selLyrs[i].threeDLayer || isNotFtg) ctrl.threeDLayer = true;
                         ctrl.property("ADBE Transform Group").property("ADBE Position").expression = "L = thisComp.layer('"+selLyrs[i].name+"')\rL.toWorld("+posProp+")"; //cheat to get toWorld position of selected layer
@@ -325,7 +325,7 @@ function MJ_ControlMaker(thisObj)
                     }
                     app.endUndoGroup();
                     
-                } else if (ctrlPressed && comp.selectedLayers.length && !pinsArray.length) { // otherwise if ctrl is pressed, import one and put it in the center of the selected objects
+                } else if (shiftPressed && comp.selectedLayers.length && !pinsArray.length) { // otherwise if shift is pressed, import one and put it in the center of the selected objects
                     app.beginUndoGroup("Import "+newFile.name+" as controller layer");
                     var selLyrs = comp.selectedLayers;
                     var ctrl = importAIasShape (newFile,comp); //use name of selected layers as controller name
@@ -333,11 +333,12 @@ function MJ_ControlMaker(thisObj)
                     var isThreeD = false;
                     for (var i in selLyrs){
                         var posProp, isNotFtg;
-                        if (ctrl instanceof AVLayer){
-                            posProp = "thisComp.layer('"+selLyrs[i].name+"')('ADBE Transform Group')('ADBE Anchor Point')";
-                        } else {
+                        if (selLyrs[i] instanceof CameraLayer || selLyrs[i] instanceof LightLayer  ){
                             posProp = "[0,0,0]";// check if layer has an anchor point or not (i.e. if it's a camera or light)
                             isNotFtg = true;
+                            
+                        } else {
+                            posProp = "thisComp.layer('"+selLyrs[i].name+"')('ADBE Transform Group')('ADBE Anchor Point')";
                         }
                         expTmp = expTmp+"thisComp.layer('"+selLyrs[i].name+"').toWorld("+posProp+")"; //cheat to find midpoint of selected layers
                         if (i<selLyrs.length-1)expTmp = expTmp+"+";
