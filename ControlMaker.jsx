@@ -11,7 +11,7 @@ function MJ_ControlMaker(thisObj)
 {
     var ctrlMakerData = {};
     ctrlMakerData.scriptName = "ControlMaker";
-    ctrlMakerData.version = "1.01";
+    ctrlMakerData.version = "1.02";
     
      ctrlMakerData.strSettingsTip = "Controller folder location";
      ctrlMakerData.strHelpTip = "About this script";
@@ -266,8 +266,9 @@ function MJ_ControlMaker(thisObj)
         }
     }
     //importControl()
-    //function to check if multiple layers/puppet pins are selected, imports controls for each one, otherwise imports one control to the center of the comp
+    //function to check if multiple layers/puppet pins are selected, imports controls for each one, otherwise imports one control to the center of the comp. *** this is the meat of the script ***
     function importControl(newFile) {
+        try {
             var shiftPressed = ScriptUI.environment.keyboardState.shiftKey;
             var comp = app.project.activeItem;
             if (comp !== null && comp instanceof CompItem) {
@@ -355,6 +356,9 @@ function MJ_ControlMaker(thisObj)
                     app.endUndoGroup();
                 }
             } else {return alert("Activate a comp timeline before importing controls.");}
+        } catch (err) {
+            alert(err.line.toString() +"\r"+err.toString());
+        }
     }
 
     // ctrlMaker_rebuildButtons()
