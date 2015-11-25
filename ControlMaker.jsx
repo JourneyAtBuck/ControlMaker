@@ -180,7 +180,11 @@ function MJ_ControlMaker(thisObj)
     function importAIasShape(newFile,comp,newCtrlName)  {
         if (!newFile) return alert("No file selected.");
         
-        var importedImg = app.project.importFile(new ImportOptions(File(newFile)));                
+        var importOptions = new ImportOptions();
+        importOptions.file = newFile;
+        importOptions.importAs= ImportAsType.FOOTAGE;
+        
+        var importedImg = app.project.importFile(importOptions);                
         var imgLayer = comp.layers.add(importedImg);                
         var layerName = importedImg.name.substr(0,importedImg.name.lastIndexOf("."));
         
