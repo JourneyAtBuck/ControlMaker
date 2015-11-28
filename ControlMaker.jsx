@@ -11,7 +11,7 @@ function MJ_ControlMaker(thisObj)
 {
     var ctrlMakerData = {};
     ctrlMakerData.scriptName = "ControlMaker";
-    ctrlMakerData.version = "1.02";
+    ctrlMakerData.version = "1.03";
     
      ctrlMakerData.strSettingsTip = "Controller folder location";
      ctrlMakerData.strHelpTip = "About this script";
@@ -307,7 +307,7 @@ function MJ_ControlMaker(thisObj)
                         }
                         ctrl.property("ADBE Transform Group").property("ADBE Position").setValue(positionOffset);
                         ctrl.property("ADBE Transform Group").property("ADBE Position").expression = "";
-                        if(shiftPressed) {pinPos.expression = "L = thisComp.layer(thisProperty.propertyGroup(1).name+\" CTRL 1\");\rL.toWorld(L(\"ADBE Transform Group\")(\"ADBE Anchor Point\"))";} // links pin position to control layer, if shift is pressed on keyboard
+                        if(shiftPressed) {pinPos.expression = "L = thisComp.layer(\""+ctrl.name+"\");\rL.toWorld(L(\"ADBE Transform Group\")(\"ADBE Anchor Point\"))";} // links pin position to control layer, if shift is pressed on keyboard
                     }
                     app.endUndoGroup();
                 } else if (!shiftPressed && comp.selectedLayers.length && !pinsArray.length) { // if any layers are selected, import one controller per layer, move to that layer
