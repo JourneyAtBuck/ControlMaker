@@ -272,7 +272,7 @@ function MJ_ControlMaker(thisObj)
     //importControl()
     //function to check if multiple layers/puppet pins are selected, imports controls for each one, otherwise imports one control to the center of the comp. *** this is the meat of the script ***
     function importControl(newFile) {
-        try {
+        //try {
             var shiftPressed = ScriptUI.environment.keyboardState.shiftKey;
             var comp = app.project.activeItem;
             if (comp !== null && comp instanceof CompItem) {
@@ -282,14 +282,14 @@ function MJ_ControlMaker(thisObj)
                 var selProps = [];
                 var pinsArray = [];
                 if (comp.selectedProperties.length) selProps = comp.selectedProperties;
-                for (var j in selProps) {
+                for (var j=0; j<selProps.length; j++) {
                     if (selProps[j].matchName == "ADBE FreePin3 PosPin Atom") pinsArray.push(selProps[j]); //are selected elements puppet pins?
                 }
                 
                 if (pinsArray.length) {
                     app.beginUndoGroup("Import "+newFile.name+" as controller layers");
 
-                    for (var p in pinsArray){ // imports a control for each selected pin
+                    for (var p=0; p<pinsArray.length; p++){ // imports a control for each selected pin
                         var pinnedLyr = pinsArray[p].propertyGroup(pinsArray[p].propertyDepth);
                         var isShape;
                         var positionOffset;
@@ -313,7 +313,7 @@ function MJ_ControlMaker(thisObj)
                 } else if (!shiftPressed && comp.selectedLayers.length && !pinsArray.length) { // if any layers are selected, import one controller per layer, move to that layer
                     app.beginUndoGroup("Import "+newFile.name+" as controller layers");
                     var selLyrs = comp.selectedLayers;
-                    for (var i in selLyrs){
+                    for (var i=0; i<selLyrs.length; i++){
                         var ctrl = importAIasShape (newFile,comp,selLyrs[i].name); //use name of selected layers as controller name
                         ctrl.moveBefore(selLyrs[i]);
                         var posProp, isNotFtg;
@@ -336,7 +336,7 @@ function MJ_ControlMaker(thisObj)
                     var ctrl = importAIasShape (newFile,comp); //use name of selected layers as controller name
                     var expTmp = "(";
                     var isThreeD = false;
-                    for (var i in selLyrs){
+                    for (var i=0; i<selLyrs.length; i++){
                         var posProp, isNotFtg;
                         if (selLyrs[i] instanceof CameraLayer || selLyrs[i] instanceof LightLayer  ){
                             posProp = "[0,0,0]";// check if layer has an anchor point or not (i.e. if it's a camera or light)
@@ -360,9 +360,9 @@ function MJ_ControlMaker(thisObj)
                     app.endUndoGroup();
                 }
             } else {return alert("Activate a comp timeline before importing controls.");}
-        } catch (err) {
+        /*} catch (err) {
             alert(err.line.toString() +"\r"+err.toString());
-        }
+        }*/
     }
 
     // ctrlMaker_rebuildButtons()
