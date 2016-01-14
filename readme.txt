@@ -1,4 +1,4 @@
-Control Maker v1.03
+Control Maker v1.04
 Created by Moses Journey. Questions or comments? email me at ControlMaker@mrjourney.net.
 
 A controller icon browser. Based on the LaunchPad.jsx script by Jeff of the After Effects crew.
