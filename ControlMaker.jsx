@@ -11,7 +11,7 @@ function MJ_ControlMaker(thisObj)
 {
     var ctrlMakerData = {};
     ctrlMakerData.scriptName = "ControlMaker";
-    ctrlMakerData.version = "1.03";
+    ctrlMakerData.version = "1.04";
     
      ctrlMakerData.strSettingsTip = "Controller folder location";
      ctrlMakerData.strHelpTip = "About this script";
@@ -302,12 +302,13 @@ function MJ_ControlMaker(thisObj)
                             positionOffset = pinPos.value;
                         }else{
                             if(pinnedLyr.threeDLayer) ctrl.threeDLayer = true;
-                            ctrl.property("ADBE Transform Group").property("ADBE Position").expression = "L = thisComp.layer(\""+pinnedLyr.name+"\")\rL.toWorld([0,0,0])"; //cheat to get toWorld position of selected layer
+                            ctrl.property("ADBE Transform Group").property("ADBE Position").expression = "L = thisComp.layer(\""+pinnedLyr.name+"\")\rL.toWorld([0,0,0]);"; //cheat to get toWorld position of selected layer
                             positionOffset = pinPos.value+ctrl.property("ADBE Transform Group").property("ADBE Position").value;
                         }
                         ctrl.property("ADBE Transform Group").property("ADBE Position").setValue(positionOffset);
                         ctrl.property("ADBE Transform Group").property("ADBE Position").expression = "";
-                        if(shiftPressed) {pinPos.expression = "L = thisComp.layer(\""+ctrl.name+"\");\rL.toWorld(L(\"ADBE Transform Group\")(\"ADBE Anchor Point\"))";} // links pin position to control layer, if shift is pressed on keyboard
+                        if(shiftPressed && isShape) {pinPos.expression = "L = thisComp.layer(\""+ctrl.name+"\");\rL.toWorld(L(\"ADBE Transform Group\")(\"ADBE Anchor Point\"));";}
+                        else if (shiftPressed && !isShape){pinPos.expression = "L = thisComp.layer(\""+ctrl.name+"\");\rfromWorld(L.toWorld(L(\"ADBE Transform Group\")(\"ADBE Anchor Point\")));";}// links pin position to control layer, if shift is pressed on keyboard
                     }
                     app.endUndoGroup();
                 } else if (!shiftPressed && comp.selectedLayers.length && !pinsArray.length) { // if any layers are selected, import one controller per layer, move to that layer
@@ -324,7 +325,7 @@ function MJ_ControlMaker(thisObj)
                             posProp = "L('ADBE Transform Group')('ADBE Anchor Point')";
                         }
                         if(selLyrs[i].threeDLayer || isNotFtg) ctrl.threeDLayer = true;
-                        ctrl.property("ADBE Transform Group").property("ADBE Position").expression = "L = thisComp.layer('"+selLyrs[i].name+"')\rL.toWorld("+posProp+")"; //cheat to get toWorld position of selected layer
+                        ctrl.property("ADBE Transform Group").property("ADBE Position").expression = "L = thisComp.layer('"+selLyrs[i].name+"')\rL.toWorld("+posProp+");"; //cheat to get toWorld position of selected layer
                         ctrl.property("ADBE Transform Group").property("ADBE Position").setValue(ctrl.property("ADBE Transform Group").property("ADBE Position").value);
                         ctrl.property("ADBE Transform Group").property("ADBE Position").expression = "";
                     }
