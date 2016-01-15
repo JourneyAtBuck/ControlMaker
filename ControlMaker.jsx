@@ -196,11 +196,11 @@ function MJ_ControlMaker(thisObj)
 
         //adds a number to the end of the name of the layer to keep layer names unique
         var ctrlCnt = 0;
-        var ctrlNumber = 0;
         for (var l = 1; l <= comp.layers.length; l++) { //checks highest numbered existing ctrl
             var cLayerName = comp.layers[l].name;
-            if (cLayerName.match(layerName+" CTRL")) {
-                ctrlCnt++;
+            var layerNumber = parseInt(cLayerName.match(/\d+$/)); // regular expression matches any numbers at the end of the layer name
+            if (cLayerName.match(layerName+" CTRL") && ctrlCnt<layerNumber) {
+                ctrlCnt = layerNumber;
             }
         }//end controller counter
        
